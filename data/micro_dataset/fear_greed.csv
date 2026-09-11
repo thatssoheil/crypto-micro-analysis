@@ -1,18 +1,4 @@
 date,value,classification
-2018-06-05,26,Fear
-2018-06-06,42,Fear
-2018-06-07,38,Fear
-2018-06-08,40,Fear
-2018-06-09,39,Fear
-2018-06-10,24,Extreme Fear
-2018-06-11,15,Extreme Fear
-2018-06-12,19,Extreme Fear
-2018-06-13,19,Extreme Fear
-2018-06-14,17,Extreme Fear
-2018-06-15,26,Fear
-2018-06-16,22,Extreme Fear
-2018-06-17,23,Extreme Fear
-2018-06-18,27,Fear
 2018-06-19,32,Fear
 2018-06-20,34,Fear
 2018-06-21,37,Fear
@@ -2999,3 +2985,17 @@ date,value,classification
 2026-08-20,62,Greed
 2026-08-21,72,Greed
 2026-08-22,71,Greed
+2026-08-23,66,Greed
+2026-08-24,73,Greed
+2026-08-25,74,Greed
+2026-08-26,65,Greed
+2026-08-27,71,Greed
+2026-08-28,73,Greed
+2026-08-29,68,Greed
+2026-08-30,69,Greed
+2026-08-31,62,Greed
+2026-09-01,69,Greed
+2026-09-02,63,Greed
+2026-09-03,65,Greed
+2026-09-04,74,Greed
+2026-09-05,73,Greed
