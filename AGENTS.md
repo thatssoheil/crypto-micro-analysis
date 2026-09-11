@@ -97,6 +97,10 @@ bash scripts/refresh.sh --check                        # status only
 
 - Macro verdict = context input for sizing (PHASE 1 there supports full tactical
   exposure here; LIQUIDATE there overrides everything here). Reading it is
-  manual/on-demand - no automated coupling, no cron, ever.
+  manual/on-demand - the two repos are NEVER coupled automatically.
+- A daily Hermes routine (21:00) refreshes this repo's data, runs the engine and
+  the audit, and reports trend health. It is a reporting convenience, NOT a
+  coupling: it must never read the macro repo's verdict, and it stays stateless
+  (no results saved). Data-refresh commits remain a manual decision.
 - Same statelessness rule, same A/B discipline, same audit-before-trust flow,
   same ASCII-only docs style (no en/em dashes).
