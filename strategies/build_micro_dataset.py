@@ -120,7 +120,10 @@ def yahoo_daily(symbol, name, period1):
 
 
 def fear_greed():
-    r = get("https://api.alternative.me/fng/", params={"limit": 3000, "format": "json"})
+    # limit=3000 silently truncated the history: the source holds 3141 rows back to
+    # 2018-02-01, so the oldest 141 days (2018-02-01..2018-06-24) were dropped on
+    # every rebuild. 10000 covers the full series.
+    r = get("https://api.alternative.me/fng/", params={"limit": 10000, "format": "json"})
     if not r:
         FAILED.append("fear_greed")
         return None
@@ -129,6 +132,35 @@ def fear_greed():
             for d in r.json()["data"]]
     meta = save_csv("fear_greed", rows, ["date", "value", "classification"])
     return {"source": "alternative.me fng", **meta}
+
+
+def print_coverage():
+    """Report calendar coverage per dataset so holes are VISIBLE, never silent.
+
+    Upstream sources have real gaps (alternative.me is missing 2024-10-26; Yahoo
+    returns a null bar for ZEC on 2026-09-10). Those are honest gaps in the
+    source, not fetch bugs - this report makes them explicit every run.
+    """
+    print("== coverage ==")
+    for p in sorted(DATA.glob("*.csv")):
+        rows = p.read_text().strip().splitlines()
+        if len(rows) < 2:
+            print(f"    {p.name}: EMPTY")
+            continue
+        dates = []
+        for line in rows[1:]:
+            try:
+                dates.append(datetime.strptime(line.split(",")[0][:10], "%Y-%m-%d").date())
+            except ValueError:
+                pass
+        if not dates:
+            continue
+        span = (dates[-1] - dates[0]).days + 1
+        have = len(set(dates))
+        missing = span - have
+        flag = "  <-- gap" if missing else ""
+        print(f"    {p.name}: {have} rows, {dates[0]} .. {dates[-1]}, span {span}d, "
+              f"missing {missing}{flag}")
 
 
 def main():
@@ -159,14 +191,24 @@ def main():
 
     manifest["_generated"] = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
 
-    # preserve any existing chart entries not rebuilt here
+    # Preserve existing chart entries not rebuilt here, but ONLY when their CSV
+    # still exists on disk. Without this guard a renamed/removed dataset lingers
+    # in the manifest forever - a phantom "zecusd_daily" entry survived the rename
+    # to zecusd_bitstamp_live and made the manifest untrustworthy as an index.
     if MANIFEST.exists():
         old = json.loads(MANIFEST.read_text())
         for k, v in old.items():
-            manifest.setdefault(k, v)
+            if k == "_generated":
+                continue
+            if (DATA / f"{k}.csv").exists():
+                manifest.setdefault(k, v)
+            else:
+                print(f"    manifest: dropped stale entry '{k}' (no {k}.csv on disk)")
 
     MANIFEST.write_text(json.dumps(manifest, indent=2))
     print(f"manifest -> {MANIFEST.name}")
+
+    print_coverage()
 
     if FAILED:
         print(f"FAILED charts: {FAILED}")
