@@ -238,9 +238,80 @@ def main():
     print(agg.to_string(float_format=lambda v: f"{v:.3f}"))
 
 
+
+
+def eq_over(pos, ret, start):
+    """Equity from `start` onward; the position series is computed on the FULL
+    history so filter state carries in, but returns accumulate out-of-sample only.
+    No look-ahead: every filter value at t uses data up to t only."""
+    p = pos.shift(1).fillna(0.0)
+    ts = pd.Timestamp(start, tz=pos.index.tz) if getattr(pos.index, 'tz', None) else pd.Timestamp(start)
+    m = pos.index >= ts
+    return (1.0 + p[m] * ret[m].fillna(0.0)).cumprod()
+
+
+def stat(eq):
+    r = eq.pct_change().dropna()
+    yrs = max((eq.index[-1] - eq.index[0]).days / 365.25, 1e-9)
+    return {"total": eq.iloc[-1] - 1,
+            "cagr": eq.iloc[-1] ** (1 / yrs) - 1,
+            "sharpe": (r.mean() / r.std() * np.sqrt(365)) if r.std() > 0 else 0.0,
+            "maxdd": (eq / eq.cummax() - 1).min()}
+
+
+def oos_test(panel, split="2022-01-01"):
+    """Select (k,h) in-sample, then judge it on unseen data against MA50.
+
+    A single grid point already flagged CUSUM(0.25, 2) as best - but it was the best
+    of a 16-cell grid, so only out-of-sample performance settles whether that was
+    signal or selection bias."""
+    rets = panel.pct_change()
+    grid = [(k, h) for k in (0.25, 0.5, 1.0, 1.5) for h in (2.0, 3.0, 5.0, 8.0)]
+    print("CUSUM OUT-OF-SAMPLE TEST  (in-sample .. %s | out-of-sample %s ..)" % (split, split))
+    print("grid searched: %d (k,h) cells - selection bias is real, that is the point" % len(grid))
+    print()
+
+    scores = {}
+    for k, h in grid:
+        shs = []
+        for asset in ("btc", "eth", "zec"):
+            close = panel[asset]
+            pos = cusum_pos(close, k=k, h=h).fillna(0.0)
+            eq, _ = sim(pos.loc[:split], rets[asset].loc[:split])
+            shs.append(stat(eq)["sharpe"])
+        scores[(k, h)] = float(np.mean(shs))
+    best = max(scores, key=scores.get)
+    ranked = sorted(scores.items(), key=lambda kv: -kv[1])[:3]
+    print("  in-sample ranking (mean sharpe): " + "  ".join(
+        "k=%.2f,h=%.0f:%.2f" % (k, h, v) for (k, h), v in ranked))
+    print("  selected: k=%.2f, h=%.0f" % (best[0], best[1]))
+    print()
+
+    print("  %-5s %-10s %10s %8s %7s %8s" % ("asset", "rule", "total", "cagr", "sharpe", "maxDD"))
+    verdict = []
+    for asset in ("btc", "eth", "zec"):
+        close, ret = panel[asset], rets[asset]
+        cand = cusum_pos(close, k=best[0], h=best[1]).fillna(0.0)
+        base = (close > close.rolling(50).mean()).astype(float)
+        for name, pos in (("cusum", cand), ("ma50", base)):
+            st = stat(eq_over(pos, ret, split))
+            print("  %-5s %-10s %9.0f%% %7.1f%% %7.2f %7.1f%%" % (
+                asset, name, st['total'] * 100, st['cagr'] * 100, st['sharpe'], st['maxdd'] * 100))
+            verdict.append({"asset": asset, "rule": name, **st})
+    v = pd.DataFrame(verdict)
+    piv = v.pivot(index="asset", columns="rule", values="sharpe")
+    wins = int((piv["cusum"] > piv["ma50"]).sum())
+    print()
+    print("  OOS sharpe: cusum beats ma50 on %d/3 assets" % wins)
+    print("  VERDICT: " + ("candidate survives - still needs walk-forward before adoption"
+                           if wins >= 3 else
+                           "does NOT survive out-of-sample - reject as selection bias"))
+
 if __name__ == "__main__":
     if "--cusum-sweep" in sys.argv:
         _panel = load_panel()
         cusum_sweep(_panel, _panel.pct_change())
+    elif "--oos" in sys.argv:
+        oos_test(load_panel())
     else:
         main()
