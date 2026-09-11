@@ -1,10 +1,4 @@
 date,value,classification
-2018-06-19,32,Fear
-2018-06-20,34,Fear
-2018-06-21,37,Fear
-2018-06-22,28,Fear
-2018-06-23,17,Extreme Fear
-2018-06-24,15,Extreme Fear
 2018-06-25,16,Extreme Fear
 2018-06-26,21,Extreme Fear
 2018-06-27,18,Extreme Fear
@@ -2999,3 +2993,9 @@ date,value,classification
 2026-09-03,65,Greed
 2026-09-04,74,Greed
 2026-09-05,73,Greed
+2026-09-06,73,Greed
+2026-09-07,71,Greed
+2026-09-08,69,Greed
+2026-09-09,66,Greed
+2026-09-10,69,Greed
+2026-09-11,56,Greed
