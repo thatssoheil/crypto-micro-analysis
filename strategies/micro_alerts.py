@@ -104,6 +104,28 @@ def build_fng_trigger(fng):
                          (extreme & ~extreme.shift(1, fill_value=False)).fillna(False)})
 
 
+def conjunctions(trig, pairs, window=10):
+    """Fire when BOTH triggers of a pair have fired within `window` days.
+
+    Single triggers are noisy (MA50 crosses carry a ~47% false-positive rate), so a
+    conjunction is the obvious way to trade lead time for specificity. Whether it
+    actually helps is decided by the same lead-time test, not by assumption.
+    """
+    out = pd.DataFrame(index=trig.index)
+    for a, b in pairs:
+        if a not in trig.columns or b not in trig.columns:
+            continue
+        fa, fb = trig[a].to_numpy(), trig[b].to_numpy()
+        # The condition stays true for `window` days after both legs have fired, so
+        # count only the RISING EDGE - otherwise one conjunction event is counted as
+        # many fires and the false-positive rate is inflated by construction.
+        raw = np.array([(fa[max(0, i - window):i + 1].any()
+                         and fb[max(0, i - window):i + 1].any())
+                        for i in range(len(trig))])
+        out[f"{a}+{b}"] = raw & ~np.concatenate([[False], raw[:-1]])
+    return out
+
+
 def find_events(series, drop=TOP_DROP, rally=BOT_RALLY, fwd=EVENT_FWD):
     """Positions of major tops and bottoms in `series` (see module docstring)."""
     fwd_min = series.shift(-1)[::-1].rolling(fwd, min_periods=1).min()[::-1]
@@ -206,8 +228,25 @@ def main():
         ct, ratio, _ = build_cross_triggers(num, den)
         rows += leadtime_table(ratio, ct, lbl)
 
-    df = pd.DataFrame(rows)
-    print(df.to_string(index=False))
+    if "--conjunctions" in sys.argv:
+        print("CONJUNCTION RULE EVIDENCE (both legs within 10 days)\n")
+        pairs = [("ma50_cross_down", "dd20_new"), ("ma50_cross_down", "ma200_breach")]
+        crows = []
+        for label, close, use200 in (("BTC", btc, True), ("ETH", eth, True), ("ZEC", zec, False)):
+            trig = build_triggers(close, use200)
+            cj = conjunctions(trig, pairs)
+            if len(cj.columns):
+                crows += leadtime_table(close, cj, label)
+        cdf = pd.DataFrame(crows)
+        print(cdf.to_string(index=False))
+        print()
+        df = pd.DataFrame(rows)
+        print("SINGLE TRIGGERS (for comparison)\n")
+        print(df.to_string(index=False))
+    else:
+        df = pd.DataFrame(rows)
+        print(df.to_string(index=False))
+
     print("\n  verdict rule: a trigger earns monitoring only if warned > missed "
           "AND fp_rate is low (a noisy trigger that fires constantly is useless).")
 
