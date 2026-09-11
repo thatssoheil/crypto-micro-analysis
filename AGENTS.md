@@ -101,6 +101,8 @@ bash scripts/refresh.sh --check                        # status only
 - A daily Hermes routine (21:00) refreshes this repo's data, runs the engine and
   the audit, and reports trend health. It is a reporting convenience, NOT a
   coupling: it must never read the macro repo's verdict, and it stays stateless
-  (no results saved). Data-refresh commits remain a manual decision.
+  (no results saved). The routine commits the refreshed dataset itself
+  ("Bot daily dataset refresh <date>"); the repo is local-only, so nothing is
+  ever pushed.
 - Same statelessness rule, same A/B discipline, same audit-before-trust flow,
   same ASCII-only docs style (no en/em dashes).
