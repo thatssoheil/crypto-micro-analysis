@@ -46,7 +46,11 @@ echo "=== [2/3] micro regime engine ==="
 "$PY" "$REPO_DIR/strategies/micro_regime.py" 2>&1 | tail -12
 
 echo "=== [3/3] audit ==="
-"$PY" "$REPO_DIR/strategies/audit_micro.py" 2>&1 | tail -4
+# tail -9 (not -4): the A5 cross-checks and their WARN lines sit above the A4
+# block, and truncating to the last 4 lines hid exactly the diagnostic detail
+# that makes them worth running. RESULT still names any FAIL and the exit code
+# propagates via pipefail.
+"$PY" "$REPO_DIR/strategies/audit_micro.py" 2>&1 | tail -9
 
 echo
 echo "=== DONE. Verdict above (printed to stdout, not saved). ==="
