@@ -8,6 +8,8 @@ Checks:
   A2 ZEC primary (Yahoo) vs live cross-check (Bitstamp) close divergence
   A3 ETH/BTC computed ratio vs Bitstamp's own ETHBTC market (network,
      skipped silently if offline)
+  A5 Bitfinex native ZEC/BTC vs the computed cross (diagnostic; WARN-only, since
+     Bitfinex's thin book legitimately lags in fast markets)
   A4 independent recomputation of engine signals at the last bar:
      RSI(14) via raw Wilder loop vs engine ewm implementation
      MA50 position + 5d slope, phase-score components
@@ -98,6 +100,62 @@ def ratio_crosscheck():
         print("[SKIP] A3 ratio cross-check (offline or venue unavailable)")
 
 
+# ------------------------------------------------------------------ A5 ----
+def bitfinex_native_cross():
+    """A5: a third independent look at ZEC, using Bitfinex's own ZEC/BTC market.
+
+    Bitfinex is the only keyless venue exposing a NATIVE ZEC/BTC series (Kraken
+    lists no ZEC/BTC pair and ignores `since`; Poloniex's chart API is gone). It is
+    a DIAGNOSTIC, not a gate: measured over 2019-2024 Bitfinex tracks the
+    Yahoo/Kraken consensus (median ~0.1-0.36%, essentially no days >5% apart), but
+    in fast markets its thinner book lags - 18.9% of overlapping days were >5% apart
+    in Nov-Dec 2017 and 15.3% in 2025, with a 31% max. So a stress-period divergence
+    is EXPECTED and must never fail the audit: medium-term drift does fail, a
+    volatile-quarter spread only warns.
+    """
+    try:
+        import requests
+    except Exception:
+        print("[SKIP] A5 bitfinex native ZEC/BTC (requests unavailable)")
+        return
+    try:
+        r = requests.get(
+            "https://api-pub.bitfinex.com/v2/candles/trade:1D:tZECBTC/hist",
+            params={"limit": 10000, "sort": 1, "start": 1400000000000}, timeout=20)
+        rows = r.json()
+        if not isinstance(rows, list) or not rows:
+            raise ValueError("empty")
+        native = pd.Series(
+            {pd.Timestamp(int(c[0]), unit="ms"): float(c[2]) for c in rows}).sort_index()
+        native.index = native.index.tz_localize(None).normalize()
+        native = native[~native.index.duplicated()].sort_index()
+    except Exception:
+        print("[SKIP] A5 bitfinex native ZEC/BTC (offline or venue unavailable)")
+        return
+
+    zec = load_ohlcv("zecusd_yahoo")["close"]
+    btc = load_ohlcv("btcusd_daily")["close"]
+    zec.index = zec.index.tz_localize(None).normalize()
+    btc.index = btc.index.tz_localize(None).normalize()
+    idx = native.index.intersection(zec.index).intersection(btc.index)
+    if len(idx) < 60:
+        print(f"[SKIP] A5 bitfinex native ZEC/BTC (only {len(idx)} overlapping days)")
+        return
+
+    comp = zec.reindex(idx) / btc.reindex(idx)
+    nat = native.reindex(idx)
+    diff = ((nat - comp).abs() / comp * 100)
+    med = float(diff.median())
+    over5 = float((diff > 5).mean() * 100)
+    check("A5 bitfinex native ZEC/BTC vs computed cross, median < 3%",
+          med < 3.0,
+          f"median {med:.2f}%, {over5:.1f}% of {len(idx)} days >5% apart "
+          f"(native {nat.iloc[-1]:.8f} vs computed {comp.iloc[-1]:.8f})")
+    if over5 > 5.0:
+        print(f"[WARN] A5 bitfinex spread on {over5:.1f}% of overlapping days - "
+              f"expected in fast markets (thin book lag), not a data error")
+
+
 # ------------------------------------------------------------------ A4 ----
 def wilder_rsi(closes, n=14):
     """Reference implementation: explicit Wilder smoothing loop."""
@@ -158,6 +216,7 @@ def main():
     schema_checks()
     zec_crosscheck()
     ratio_crosscheck()
+    bitfinex_native_cross()
     signal_recompute()
     n = len(FAILS)
     print("-" * 64)
