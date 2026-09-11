@@ -1,4 +1,145 @@
 date,value,classification
+2018-02-01,30,Fear
+2018-02-02,15,Extreme Fear
+2018-02-03,40,Fear
+2018-02-04,24,Extreme Fear
+2018-02-05,11,Extreme Fear
+2018-02-06,8,Extreme Fear
+2018-02-07,36,Fear
+2018-02-08,30,Fear
+2018-02-09,44,Fear
+2018-02-10,54,Neutral
+2018-02-11,31,Fear
+2018-02-12,42,Fear
+2018-02-13,35,Fear
+2018-02-14,55,Greed
+2018-02-15,71,Greed
+2018-02-16,67,Greed
+2018-02-17,74,Greed
+2018-02-18,63,Greed
+2018-02-19,67,Greed
+2018-02-20,74,Greed
+2018-02-21,54,Neutral
+2018-02-22,44,Fear
+2018-02-23,39,Fear
+2018-02-24,31,Fear
+2018-02-25,33,Fear
+2018-02-26,37,Fear
+2018-02-27,44,Fear
+2018-02-28,41,Fear
+2018-03-01,38,Fear
+2018-03-02,47,Neutral
+2018-03-03,56,Greed
+2018-03-04,44,Fear
+2018-03-05,55,Greed
+2018-03-06,59,Greed
+2018-03-07,37,Fear
+2018-03-08,39,Fear
+2018-03-09,37,Fear
+2018-03-10,39,Fear
+2018-03-11,40,Fear
+2018-03-12,41,Fear
+2018-03-13,41,Fear
+2018-03-14,40,Fear
+2018-03-15,32,Fear
+2018-03-16,33,Fear
+2018-03-17,31,Fear
+2018-03-18,29,Fear
+2018-03-19,29,Fear
+2018-03-20,37,Fear
+2018-03-21,36,Fear
+2018-03-22,36,Fear
+2018-03-23,28,Fear
+2018-03-24,32,Fear
+2018-03-25,30,Fear
+2018-03-26,31,Fear
+2018-03-27,24,Extreme Fear
+2018-03-28,24,Extreme Fear
+2018-03-29,18,Extreme Fear
+2018-03-30,12,Extreme Fear
+2018-03-31,16,Extreme Fear
+2018-04-01,16,Extreme Fear
+2018-04-02,11,Extreme Fear
+2018-04-03,22,Extreme Fear
+2018-04-04,22,Extreme Fear
+2018-04-05,17,Extreme Fear
+2018-04-06,19,Extreme Fear
+2018-04-07,20,Extreme Fear
+2018-04-08,17,Extreme Fear
+2018-04-09,21,Extreme Fear
+2018-04-10,18,Extreme Fear
+2018-04-11,20,Extreme Fear
+2018-04-12,18,Extreme Fear
+2018-04-13,23,Extreme Fear
+2018-04-17,26,Fear
+2018-04-18,24,Extreme Fear
+2018-04-19,25,Extreme Fear
+2018-04-20,26,Fear
+2018-04-21,32,Fear
+2018-04-22,31,Fear
+2018-04-23,28,Fear
+2018-04-24,29,Fear
+2018-04-25,64,Greed
+2018-04-26,47,Neutral
+2018-04-27,55,Greed
+2018-04-28,54,Neutral
+2018-04-29,61,Greed
+2018-04-30,59,Greed
+2018-05-01,56,Greed
+2018-05-02,52,Neutral
+2018-05-03,55,Greed
+2018-05-04,56,Greed
+2018-05-05,63,Greed
+2018-05-06,67,Greed
+2018-05-07,56,Greed
+2018-05-08,62,Greed
+2018-05-09,53,Neutral
+2018-05-10,63,Greed
+2018-05-11,41,Fear
+2018-05-12,44,Fear
+2018-05-13,40,Fear
+2018-05-14,40,Fear
+2018-05-15,40,Fear
+2018-05-16,32,Fear
+2018-05-17,31,Fear
+2018-05-18,37,Fear
+2018-05-19,31,Fear
+2018-05-20,32,Fear
+2018-05-21,41,Fear
+2018-05-22,30,Fear
+2018-05-23,26,Fear
+2018-05-24,27,Fear
+2018-05-25,25,Extreme Fear
+2018-05-26,23,Extreme Fear
+2018-05-27,19,Extreme Fear
+2018-05-28,22,Extreme Fear
+2018-05-29,16,Extreme Fear
+2018-05-30,38,Fear
+2018-05-31,25,Extreme Fear
+2018-06-01,24,Extreme Fear
+2018-06-02,27,Fear
+2018-06-03,40,Fear
+2018-06-04,41,Fear
+2018-06-05,26,Fear
+2018-06-06,42,Fear
+2018-06-07,38,Fear
+2018-06-08,40,Fear
+2018-06-09,39,Fear
+2018-06-10,24,Extreme Fear
+2018-06-11,15,Extreme Fear
+2018-06-12,19,Extreme Fear
+2018-06-13,19,Extreme Fear
+2018-06-14,17,Extreme Fear
+2018-06-15,26,Fear
+2018-06-16,22,Extreme Fear
+2018-06-17,23,Extreme Fear
+2018-06-18,27,Fear
+2018-06-19,32,Fear
+2018-06-20,34,Fear
+2018-06-21,37,Fear
+2018-06-22,28,Fear
+2018-06-23,17,Extreme Fear
+2018-06-24,15,Extreme Fear
 2018-06-25,16,Extreme Fear
 2018-06-26,21,Extreme Fear
 2018-06-27,18,Extreme Fear
