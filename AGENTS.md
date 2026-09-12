@@ -106,3 +106,17 @@ bash scripts/refresh.sh --check                        # status only
   ever pushed.
 - Same statelessness rule, same A/B discipline, same audit-before-trust flow,
   same ASCII-only docs style (no en/em dashes).
+- **On-chain charts: declined for this repo (2026-09-12, owner decision).** The
+  macro repo added 20 keyless Glassnode on-chain charts (exchange netflow,
+  exchange balance, SOPR, NUPL, supply-in-profit; BTC + ETH; live + point-in-time
+  twins with a confidence gate). They are deliberately NOT brought here. Reasons:
+  (1) Glassnode covers ZEC price only, so the third asset would be uncovered;
+  (2) those charts are merge-only with a 30-day rolling window - gaps are
+  PERMANENT - which breaks this repo's "every fetch re-pulls full history, gaps
+  self-heal" convention; (3) this repo's horizon is days-to-weeks, the same
+  timescale on which flow data is restated (BTC exchange netflow differed
+  live-vs-PIT on 30/30 days, mean 232%, with a sign flip) - so flows are the
+  worst-fitting input class HERE, while the four stock metrics stayed within
+  0.3%. Revisit only with months of accrued history AND a documented
+  permanent-gap exception; the candidate set then is 8 stock charts
+  (balance/SOPR/NUPL/supply-in-profit x BTC/ETH), never the flow metric.
