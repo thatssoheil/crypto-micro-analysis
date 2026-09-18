@@ -17,7 +17,7 @@ Keyless sources only - no API keys required.
 """
 import json
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import requests
@@ -27,6 +27,19 @@ DATA.mkdir(parents=True, exist_ok=True)
 MANIFEST = DATA / "manifest.json"
 
 FAILED = []
+
+
+def drop_in_progress(rows, step_seconds=86400):
+    """Finalized-bars-only policy (2026-09-18): drop any bar whose period has not
+    closed yet. A daily bar stamped T covers [T, T+24h) and is final only at
+    T+24h. Before this, the refresh committed the in-progress bar as the day's
+    close, so a "close" silently revised later (and the public repo showed
+    provisional values as finals). Intraday reads belong to micro_probe.py -
+    the dataset owns final closes only."""
+    cutoff = datetime.now(timezone.utc) - timedelta(seconds=step_seconds)
+    return [r for r in rows
+            if datetime.strptime(str(r[0]), "%Y-%m-%d %H:%M:%S")
+            .replace(tzinfo=timezone.utc) <= cutoff]
 
 
 def get(url, params=None, tries=3):
@@ -83,6 +96,7 @@ def bitstamp_ohlc(pair, name, max_iters=100):
             break
         start = oldest - step * 1000
         time.sleep(0.6)
+    rows = drop_in_progress(rows)
     if not rows:
         FAILED.append(name)
         return None
@@ -112,6 +126,7 @@ def yahoo_daily(symbol, name, period1):
             continue
         rows.append([datetime.fromtimestamp(t, tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
                      o, h, l, c, v or 0])
+    rows = drop_in_progress(rows)
     if not rows:
         FAILED.append(name)
         return None
