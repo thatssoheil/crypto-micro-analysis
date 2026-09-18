@@ -103,12 +103,14 @@ bash scripts/refresh.sh --check                        # status only
 - Macro verdict = context input for sizing (PHASE 1 there supports full tactical
   exposure here; LIQUIDATE there overrides everything here). Reading it is
   manual/on-demand - the two repos are NEVER coupled automatically.
-- A daily Hermes routine (21:00) refreshes this repo's data, runs the engine and
-  the audit, and reports trend health. It is a reporting convenience, NOT a
-  coupling: it must never read the macro repo's verdict, and it stays stateless
-  (no results saved). The routine commits the refreshed dataset itself
-  ("Bot daily dataset refresh <date>"); the repo is local-only, so nothing is
-  ever pushed.
+- A daily Hermes routine (00:15 UTC) refreshes this repo's data, runs the engine
+  and the audit, commits AND pushes the refreshed dataset ("Bot daily dataset
+  refresh <date>"; the repo is public since 2026-09-18), and is SILENT unless
+  something needs attention - a failure, or a fresh scenario from the trigger
+  watcher (post-refresh) or the hourly intraday probe. It is a reporting
+  convenience, NOT a coupling: it must never read the macro repo's verdict, and
+  it stays stateless (no results saved; watcher dedupe state lives outside the
+  repo, in ~/.hermes/state).
 - Same statelessness rule, same A/B discipline, same audit-before-trust flow,
   same ASCII-only docs style (no en/em dashes).
 - **On-chain charts: declined for this repo (2026-09-12, owner decision).** The
