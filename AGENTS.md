@@ -50,7 +50,7 @@ Public, MIT.
 ## Commands
 
 ```bash
-cd ~/projects/crypto-micro-analysis
+cd ~/hermes-projects/crypto-micro-analysis
 ./.venv/bin/python strategies/micro_regime.py          # live verdict -> stdout
 ./.venv/bin/python strategies/micro_backtest.py        # A/B evidence -> stdout
 ./.venv/bin/python strategies/phase_history.py         # phase validation -> stdout
@@ -77,6 +77,11 @@ bash scripts/refresh.sh --check                        # status only
   before it was fixed; do not reintroduce it.)
 
 ## Data pitfalls (learned the hard way)
+
+- **The dataset stores FINAL daily bars only** (2026-09-18): the builder drops
+  any bar younger than 24h, so a bar enters on the first refresh after its
+  00:00 UTC close. Intraday/provisional reads belong to micro_probe.py; never
+  commit a provisional close as final.
 
 - **Bitstamp delisted/relisted ZEC-USD**: its history starts 2026-03. Yahoo
   `ZEC-USD` v8 chart API is the ZEC primary source (full 2017-11+ history,

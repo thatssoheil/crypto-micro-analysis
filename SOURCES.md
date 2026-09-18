@@ -69,6 +69,11 @@ one CSV per chart, `ts,open,high,low,close,volume` for OHLCV or
    `[mts, OPEN, CLOSE, HIGH, LOW, volume]` - close is index 2, not 4, and
    `limit=10000&sort=1` returns the whole series in one request.
 
+7. **Final bars only (2026-09-18).** `build_micro_dataset.py` drops any daily
+   bar younger than 24h (an in-progress bar's close is a snapshot that silently
+   revises). The daily routine runs 00:15 UTC so the newest committed bar is the
+   just-closed one. Provisional/intraday price reads: `micro_probe.py` only.
+
 ## Adding a new chart
 
 1. Add a fetcher function in `build_micro_dataset.py` following the existing
