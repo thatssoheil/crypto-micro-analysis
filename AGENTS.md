@@ -107,7 +107,8 @@ bash scripts/refresh.sh --check                        # status only
   and the audit, commits AND pushes the refreshed dataset ("Bot daily dataset
   refresh <date>"; the repo is public since 2026-09-18), and is SILENT unless
   something needs attention - a failure, or a fresh scenario from the trigger
-  watcher (post-refresh) or the hourly intraday probe. It is a reporting
+  watcher (post-refresh). The live-vs-levels probe (strategies/micro_probe.py)
+  is an on-demand read, never scheduled. It is a reporting
   convenience, NOT a coupling: it must never read the macro repo's verdict, and
   it stays stateless (no results saved; watcher dedupe state lives outside the
   repo, in ~/.hermes/state).
