@@ -13,9 +13,9 @@
   },
   "zecusd_yahoo": {
     "source": "Yahoo v8 chart ZEC-USD",
-    "rows": 3251,
+    "rows": 3252,
     "first": "2017-11-09 00:00:00",
-    "last": "2026-10-03 00:00:00"
+    "last": "2026-10-04 00:00:00"
   },
   "zecusd_bitstamp_live": {
     "source": "Bitstamp v2 ohlc",
@@ -29,5 +29,5 @@
     "first": "2018-02-01",
     "last": "2026-10-05"
   },
-  "_generated": "2026-10-05 00:16:05 UTC"
+  "_generated": "2026-10-05 20:45:20 UTC"
 }
