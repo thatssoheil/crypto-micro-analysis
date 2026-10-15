@@ -1,33 +1,33 @@
 {
   "btcusd_daily": {
     "source": "Bitstamp v2 ohlc",
-    "rows": 5536,
+    "rows": 5537,
     "first": "2011-08-18 00:00:00",
-    "last": "2026-10-13 00:00:00"
+    "last": "2026-10-14 00:00:00"
   },
   "ethusd_daily": {
     "source": "Bitstamp v2 ohlc",
-    "rows": 3346,
+    "rows": 3347,
     "first": "2017-08-16 00:00:00",
-    "last": "2026-10-13 00:00:00"
+    "last": "2026-10-14 00:00:00"
   },
   "zecusd_yahoo": {
     "source": "Yahoo v8 chart ZEC-USD",
-    "rows": 3261,
+    "rows": 3262,
     "first": "2017-11-09 00:00:00",
-    "last": "2026-10-13 00:00:00"
+    "last": "2026-10-14 00:00:00"
   },
   "zecusd_bitstamp_live": {
     "source": "Bitstamp v2 ohlc",
-    "rows": 209,
+    "rows": 210,
     "first": "2026-03-19 00:00:00",
-    "last": "2026-10-13 00:00:00"
+    "last": "2026-10-14 00:00:00"
   },
   "fear_greed": {
     "source": "alternative.me fng",
-    "rows": 3174,
+    "rows": 3175,
     "first": "2018-02-01",
-    "last": "2026-10-14"
+    "last": "2026-10-15"
   },
-  "_generated": "2026-10-14 20:45:45 UTC"
+  "_generated": "2026-10-15 20:45:51 UTC"
 }
