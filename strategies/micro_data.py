@@ -21,7 +21,8 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).parent))
 from micro_regime import load_ohlcv, load_fng, rsi, ma_slope  # noqa: E402
 
-ASSETS = (("BTC", "btcusd_daily"), ("ETH", "ethusd_daily"), ("ZEC", "zecusd_yahoo"))
+ASSETS = (("BTC", "btcusd_daily"), ("ETH", "ethusd_daily"), ("ZEC", "zecusd_yahoo"),
+          ("SUI", "suiusd_yahoo"), ("TAO", "taousd_yahoo"), ("HBAR", "hbarusd_yahoo"))
 DD_WIN, MA_FAST, MA_SLOW = 180, 50, 200
 
 
@@ -92,8 +93,11 @@ def main():
 
     print("\nDISTANCE TO ALERT LEVELS (how far price must fall)")
     print(f"{'asset':5} {'180d high':>11} {'drop to MA50':>13} {'drop to MA200':>14} {'dd20 room':>15}")
+    # No-200d-floor assets (AGENTS.md rule 2): floor locks them out of recovery
+    # rallies - the MA200 column is not their discipline.
+    NO_FLOOR = {"ZEC", "TAO", "HBAR"}
     for r in rows:
-        ma200_note = "n/a (rule 2)" if r["asset"] == "ZEC" else f"{r['buffer_to_ma200_pct']:>13.1f}%"
+        ma200_note = "n/a (rule 2)" if r["asset"] in NO_FLOOR else f"{r['buffer_to_ma200_pct']:>13.1f}%"
         print(f"{r['asset']:5} {r['high180']:>11,.2f} {r['buffer_to_ma50_pct']:>12.1f}% "
               f"{ma200_note:>14} {r['buffer_to_dd20_pts']:>14.1f}pp")
 
@@ -101,7 +105,10 @@ def main():
     import micro_regime as mr
     for label, num, den in (("ETH/BTC", "ethusd_daily", "btcusd_daily"),
                             ("ZEC/BTC", "zecusd_yahoo", "btcusd_daily"),
-                            ("ZEC/ETH", "zecusd_yahoo", "ethusd_daily")):
+                            ("ZEC/ETH", "zecusd_yahoo", "ethusd_daily"),
+                            ("SUI/BTC", "suiusd_yahoo", "btcusd_daily"),
+                            ("TAO/BTC", "taousd_yahoo", "btcusd_daily"),
+                            ("HBAR/BTC", "hbarusd_yahoo", "btcusd_daily")):
         n, d = load_ohlcv(num), load_ohlcv(den)
         idx = n.index.intersection(d.index)
         ratio = (n.loc[idx, "close"] / d.loc[idx, "close"]).dropna()

@@ -2,7 +2,7 @@
 """
 MICRO REGIME ENGINE - short-horizon companion to the macro verdict.
 
-Answers, per asset (BTC / ETH / ZEC):
+Answers, per asset (BTC / ETH / ZEC / SUI / TAO / HBAR):
   1. Is the asset in a tradeable trend right now?      -> trend health
   2. Which asset is the strongest place to sit?        -> cross-pair RS
   3. Where are we in the bull cycle?                   -> phase score
@@ -117,6 +117,8 @@ def ratio_block(pair_name, num_df, den_df):
 
     mom = 1 if ma20 > ma60 else (-1 if ma20 < ma60 else 0)
     band = 1 if pos_in_band > 0.66 else (-1 if pos_in_band < 0.33 else 0)
+    band_desc = ("upper third - leading" if band > 0 else
+                 "lower third - lagging" if band < 0 else "mid-range - mixed")
     return {
         "ratio": ratio,
         "cur": cur, "ma20": ma20, "ma60": ma60, "pos": pos_in_band,
@@ -124,15 +126,15 @@ def ratio_block(pair_name, num_df, den_df):
         "score": mom + band,
         "mom_d": ("20d above 60d MA" if mom > 0 else
                   "20d below 60d MA" if mom < 0 else "flat"),
-        "band_d": (f"{pos_in_band*100:.0f}% of 180d range",
-                   "upper third - leading", "lower third - lagging"),
+        "band_d": (f"{pos_in_band*100:.0f}% of 180d range", band_desc),
     }
 
 
 # ------------------------------------------------------------------- phase --
-def phase_score(btc, eth, zec, fng):
+def phase_score(btc, fng, assets):
     """Cycle-phase estimate: where in the bull run are we?
-    Returns (score -3..+3, phase label, [lines])."""
+    Returns (score -3..+3, phase label, [lines]).
+    assets = list of OHLCV frames counted in breadth (BTC/ETH/ZEC/...)."""
     lines = []
     score = 0.0
     w = []
@@ -160,14 +162,17 @@ def phase_score(btc, eth, zec, fng):
     score += s * 1.0; w.append(1.0)
     lines.append(f"  F&G {v:.0f}          {d}  [{s:+d} x1.0]")
 
-    # Breadth: how many assets hold their own MA50
+    # Breadth: fraction of assets holding their own MA50. Bands reproduce
+    # the legacy 3-asset map (3->+1, 2->0, 1/0->-1) and scale to N assets.
+    have = [df for df in assets if df is not None and len(df) >= 55]
     holding = sum(
-        1 for df in (btc, eth, zec)
-        if df is not None and len(df) >= 55
-        and df["close"].iloc[-1] > df["close"].rolling(50).mean().iloc[-1]
+        1 for df in have
+        if df["close"].iloc[-1] > df["close"].rolling(50).mean().iloc[-1]
     )
-    s = {3: 1, 2: 0, 1: -1, 0: -1}[holding]
-    d = f"{holding}/3 assets above MA50"
+    n = len(have)
+    frac = (holding / n) if n else 0.0
+    s = 1 if frac >= 0.8 else (0 if frac >= 0.5 else -1)
+    d = f"{holding}/{n} assets above MA50"
     score += s * 1.5; w.append(1.5)
     lines.append(f"  Breadth          {d}  [{s:+d} x1.5]")
 
@@ -190,6 +195,9 @@ def main():
     btc = load_ohlcv("btcusd_daily")
     eth = load_ohlcv("ethusd_daily")
     zec = load_ohlcv("zecusd_yahoo")
+    sui = load_ohlcv("suiusd_yahoo")
+    tao = load_ohlcv("taousd_yahoo")
+    hbar = load_ohlcv("hbarusd_yahoo")
     fng = load_fng()
     if btc is None or eth is None:
         raise SystemExit("dataset missing - run build_micro_dataset.py first")
@@ -202,7 +210,8 @@ def main():
     # ---- trend health per asset
     blocks = {}
     slopes = {}
-    for name, df in [("BTC", btc), ("ETH", eth), ("ZEC", zec)]:
+    for name, df in [("BTC", btc), ("ETH", eth), ("ZEC", zec),
+                     ("SUI", sui), ("TAO", tao), ("HBAR", hbar)]:
         if df is None:
             continue
         s, lines = trend_block(name, df)
@@ -213,11 +222,17 @@ def main():
         print(f"\n-- {name}  (${px:,.2f})  trend score {s:+d}/3")
         print("\n".join(lines))
 
-    # ---- cross-pair relative strength
+    # ---- cross-pair relative strength (BTC-denominated for every alt,
+    # plus the legacy ZEC/ETH leg)
     print("\n-- cross-pair relative strength")
     for pname, num, den, dlabel in [
             ("ETH/BTC", eth, btc, "ETH vs BTC"), ("ZEC/BTC", zec, btc, "ZEC vs BTC"),
-            ("ZEC/ETH", zec, eth, "ZEC vs ETH")]:
+            ("ZEC/ETH", zec, eth, "ZEC vs ETH"),
+            ("SUI/BTC", sui, btc, "SUI vs BTC"), ("TAO/BTC", tao, btc, "TAO vs BTC"),
+            ("HBAR/BTC", hbar, btc, "HBAR vs BTC")]:
+        if num is None or den is None:
+            print(f"  {pname}: dataset missing - run build_micro_dataset.py first")
+            continue
         rb = ratio_block(pname, num, den)
         if rb is None:
             print(f"  {pname}: insufficient aligned history (<200d)")
@@ -234,7 +249,7 @@ def main():
                        for kv in ranked))
 
     # ---- cycle phase
-    ps, plabel, plines = phase_score(btc, eth, zec, fng)
+    ps, plabel, plines = phase_score(btc, fng, [btc, eth, zec, sui, tao, hbar])
     print("\n-- cycle phase score")
     print("\n".join(plines))
     print(f"\n>>> PHASE SCORE {ps:+.1f}  ->  {plabel}")

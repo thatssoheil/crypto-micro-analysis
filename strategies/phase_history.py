@@ -22,6 +22,9 @@ DATA = Path(__file__).parent.parent / "data" / "micro_dataset"
 
 
 def load_panel():
+    # LEGACY 3-asset panel on purpose: this validator checks the Dec-2017 and
+    # Nov-2021 tops, which SUI/TAO/HBAR did not live through. The live engine's
+    # breadth counts all six; this file proves the phase logic on history.
     cols = {}
     for key, name in [("btcusd_daily", "btc"), ("ethusd_daily", "eth"),
                       ("zecusd_yahoo", "zec")]:
@@ -50,14 +53,17 @@ def phase_series(panel, fng):
     s_dd = pd.Series(np.select([dd > -0.10, dd > -0.25], [1.0, 0.0],
                                default=np.nan), index=btc.index)
 
-    # component 2: breadth - assets above their own MA50 (weight 1.5)
-    # only counted once every asset HAS an MA50 (else NaN)
+    # component 2: breadth - fraction of assets above their own MA50 (weight 1.5)
+    # only counted once every asset HAS an MA50 (else NaN). Bands reproduce the
+    # legacy 3-asset map (3->+1, 2->0, 1/0->-1) and scale to N assets.
     ma50 = panel.rolling(50, min_periods=50).mean()
     above = ((panel > ma50) & ma50.notna()).sum(axis=1)
+    n_assets = panel.shape[1]
     have_ma = ma50.notna().all(axis=1)
-    s_br = pd.Series(np.where(have_ma,
-                              above.map({3: 1.0, 2: 0.0, 1: -1.0, 0: -1.0}),
-                              np.nan), index=panel.index)
+    frac = above / n_assets
+    s_br = pd.Series(np.select([~have_ma, frac >= 0.8, frac >= 0.5],
+                               [np.nan, 1.0, 0.0], default=-1.0),
+                     index=panel.index)
 
     # component 3: F&G contrarian (weight 1.0, only where it exists)
     fg = fng.reindex(fng.index.union(panel.index)).ffill().reindex(panel.index)

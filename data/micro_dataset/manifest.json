@@ -1,33 +1,69 @@
 {
   "btcusd_daily": {
     "source": "Bitstamp v2 ohlc",
-    "rows": 5537,
+    "rows": 5538,
     "first": "2011-08-18 00:00:00",
-    "last": "2026-10-14 00:00:00"
+    "last": "2026-10-15 00:00:00"
   },
   "ethusd_daily": {
     "source": "Bitstamp v2 ohlc",
-    "rows": 3347,
+    "rows": 3348,
     "first": "2017-08-16 00:00:00",
-    "last": "2026-10-14 00:00:00"
+    "last": "2026-10-15 00:00:00"
   },
   "zecusd_yahoo": {
     "source": "Yahoo v8 chart ZEC-USD",
-    "rows": 3262,
+    "rows": 3263,
     "first": "2017-11-09 00:00:00",
-    "last": "2026-10-14 00:00:00"
+    "last": "2026-10-15 00:00:00"
+  },
+  "suiusd_yahoo": {
+    "source": "Yahoo v8 chart SUI20947-USD",
+    "rows": 1261,
+    "first": "2023-05-04 00:00:00",
+    "last": "2026-10-15 00:00:00"
+  },
+  "taousd_yahoo": {
+    "source": "Yahoo v8 chart TAO22974-USD",
+    "rows": 1320,
+    "first": "2023-03-06 00:00:00",
+    "last": "2026-10-15 00:00:00"
+  },
+  "hbarusd_yahoo": {
+    "source": "Yahoo v8 chart HBAR-USD",
+    "rows": 2585,
+    "first": "2019-09-18 00:00:00",
+    "last": "2026-10-15 00:00:00"
   },
   "zecusd_bitstamp_live": {
     "source": "Bitstamp v2 ohlc",
-    "rows": 210,
+    "rows": 211,
     "first": "2026-03-19 00:00:00",
-    "last": "2026-10-14 00:00:00"
+    "last": "2026-10-15 00:00:00"
+  },
+  "suiusd_bitstamp_live": {
+    "source": "Bitstamp v2 ohlc",
+    "rows": 1260,
+    "first": "2023-05-05 00:00:00",
+    "last": "2026-10-15 00:00:00"
+  },
+  "taousd_bitstamp_live": {
+    "source": "Bitstamp v2 ohlc",
+    "rows": 268,
+    "first": "2026-01-21 00:00:00",
+    "last": "2026-10-15 00:00:00"
+  },
+  "hbarusd_bitstamp_live": {
+    "source": "Bitstamp v2 ohlc",
+    "rows": 1835,
+    "first": "2021-10-07 00:00:00",
+    "last": "2026-10-15 00:00:00"
   },
   "fear_greed": {
     "source": "alternative.me fng",
-    "rows": 3175,
+    "rows": 3176,
     "first": "2018-02-01",
-    "last": "2026-10-15"
+    "last": "2026-10-16"
   },
-  "_generated": "2026-10-15 20:45:51 UTC"
+  "_generated": "2026-10-16 11:22:14 UTC"
 }

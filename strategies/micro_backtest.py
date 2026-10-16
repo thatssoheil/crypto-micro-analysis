@@ -2,15 +2,21 @@
 """
 MICRO BACKTEST - A/B evidence for every micro-engine claim (repo golden rule).
 
-Questions answered on real data (common history of all 3 assets -> today):
+Questions answered on real data:
   Q1 Does an MA50 trend filter beat buy-and-hold on each asset?
+     (per-asset FULL span: each asset on its own history, no panel shrink)
   Q2 Does adding an MA200 hard floor (macro-repo convention) help or hurt?
   Q3 Does cross-pair RS rotation (hold the strongest asset, cash when none
      hold their MA50) beat just holding BTC?
+     (legacy 3-asset panel 2017-11+ AND full 6-asset panel 2023-05+)
 
 Conventions mirror crypto-macro-analysis: true daily closes, signal at close t
 drives the t->t+1 return (shifted execution, no look-ahead), no cost model,
 STATELESS - prints to stdout, saves nothing.
+
+NOTE: the 6-asset aligned panel starts 2023-05-03 (SUI binds) - ~3.4y.
+Legacy 3-asset numbers are kept alongside so the long-window evidence stays
+visible; never quote 6-asset rotation multiples without the window.
 """
 from pathlib import Path
 
@@ -20,15 +26,30 @@ import pandas as pd
 DATA = Path(__file__).parent.parent / "data" / "micro_dataset"
 
 
-def load_panel():
-    """Aligned close-price panel: columns btc, eth, zec on shared dates."""
+def load_panel(assets=None):
+    """Aligned close-price panel on shared dates.
+    assets: list of (file_key, col) - default all six; pass the legacy three
+    for the long-window panel."""
+    assets = assets or [("btcusd_daily", "btc"), ("ethusd_daily", "eth"),
+                        ("zecusd_yahoo", "zec"), ("suiusd_yahoo", "sui"),
+                        ("taousd_yahoo", "tao"), ("hbarusd_yahoo", "hbar")]
     cols = {}
-    for key, name in [("btcusd_daily", "btc"), ("ethusd_daily", "eth"),
-                      ("zecusd_yahoo", "zec")]:
+    for key, name in assets:
         df = pd.read_csv(DATA / f"{key}.csv")
         df["ts"] = pd.to_datetime(df["ts"], utc=True)
         cols[name] = df.set_index("ts")["close"].sort_index()
     return pd.DataFrame(cols).dropna()
+
+
+LEGACY3 = [("btcusd_daily", "btc"), ("ethusd_daily", "eth"),
+           ("zecusd_yahoo", "zec")]
+
+
+def load_full_span(key):
+    """Single-asset full history (no panel shrink) - for Q1/Q2 per-asset A/B."""
+    df = pd.read_csv(DATA / f"{key}.csv")
+    df["ts"] = pd.to_datetime(df["ts"], utc=True)
+    return df.set_index("ts")["close"].sort_index()
 
 
 def sim(pos, ret):
@@ -101,36 +122,44 @@ def rs_rotation(panel, fast=20, slow=60):
 
 
 def main():
-    panel = load_panel()
-    rets = panel.pct_change()
-    span = f"{panel.index[0].date()} .. {panel.index[-1].date()} ({len(panel)} days)"
     print("=" * 78)
-    print(f"MICRO BACKTEST - aligned 3-asset panel {span}")
-    print("=" * 78)
-
-    print("\nQ1/Q2 - trend filters per asset (A/B vs buy-and-hold)")
+    print("Q1/Q2 - trend filters per asset, FULL SPAN each (no panel shrink)")
     print("-" * 78)
-    for c in panel.columns:
-        bh_eq = (1.0 + rets[c].fillna(0)).cumprod()
-        report(bh_eq, 0, f"{c.upper()} buy&hold")
-        eq, fl = sim(per_asset_trend(panel[[c]], 50)[c], rets[c])
-        report(eq, fl, f"{c.upper()} MA50")
-        eq2, fl2 = sim(per_asset_trend(panel[[c]], 50, floor=200)[c], rets[c])
-        report(eq2, fl2, f"{c.upper()} MA50+200floor")
+    for key, c in [("btcusd_daily", "BTC"), ("ethusd_daily", "ETH"),
+                   ("zecusd_yahoo", "ZEC"), ("suiusd_yahoo", "SUI"),
+                   ("taousd_yahoo", "TAO"), ("hbarusd_yahoo", "HBAR")]:
+        px = load_full_span(key)
+        rets = px.pct_change()
+        span = f"{px.index[0].date()} .. {px.index[-1].date()} ({len(px)} days)"
+        print(f"-- {c} [{span}]")
+        bh_eq = (1.0 + rets.fillna(0)).cumprod()
+        report(bh_eq, 0, f"{c} buy&hold")
+        s50 = (px > px.rolling(50).mean()).astype(float)
+        eq, fl = sim(s50, rets)
+        report(eq, fl, f"{c} MA50")
+        s50f = (s50.astype(bool) & (px > px.rolling(200).mean())).astype(float)
+        eq2, fl2 = sim(s50f, rets)
+        report(eq2, fl2, f"{c} MA50+200floor")
         print()
 
-    print("Q3 - cross-pair RS rotation vs holding BTC")
-    print("-" * 78)
-    btc_bh = (1.0 + rets["btc"].fillna(0)).cumprod()
-    report(btc_bh, 0, "BTC buy&hold")
-    W = rs_rotation(panel)
-    eq3, sw = sim_weights(W, rets)
-    report(eq3, sw, "RS rotation (1 asset)")
+    for plabel, assets in (("legacy 3-asset", LEGACY3), ("full 6-asset", None)):
+        panel = load_panel(assets)
+        rets = panel.pct_change()
+        span = f"{panel.index[0].date()} .. {panel.index[-1].date()} ({len(panel)} days)"
+        print("=" * 78)
+        print(f"Q3 - RS rotation vs holding BTC [{plabel} panel {span}]")
+        print("=" * 78)
+        btc_bh = (1.0 + rets["btc"].fillna(0)).cumprod()
+        report(btc_bh, 0, "BTC buy&hold")
+        W = rs_rotation(panel)
+        eq3, sw = sim_weights(W, rets)
+        report(eq3, sw, "RS rotation (1 asset)")
 
-    # exposure stats
-    expo = W.shift(1).fillna(0).sum(axis=1)
-    print(f"\nrotation exposure: mean {expo.mean()*100:.0f}% of days invested, "
-          f"cash {(expo==0).mean()*100:.0f}% of days")
+        # exposure stats
+        expo = W.shift(1).fillna(0).sum(axis=1)
+        print(f"\nrotation exposure: mean {expo.mean()*100:.0f}% of days invested, "
+              f"cash {(expo==0).mean()*100:.0f}% of days")
+        print()
 
 
 if __name__ == "__main__":

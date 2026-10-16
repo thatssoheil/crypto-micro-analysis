@@ -14,6 +14,12 @@ one CSV per chart, `ts,open,high,low,close,volume` for OHLCV or
 | ethusd_daily | Bitstamp v2 ohlc | same pattern, `ethusd` | 2017-08+ | |
 | zecusd_yahoo | Yahoo Finance v8 chart | `https://query1.finance.yahoo.com/v8/finance/chart/ZEC-USD?period1=1461360000&period2=now&interval=1d` | 2017-11-09+ | **ZEC primary.** Bitstamp delisted/relisted ZEC-USD (its ZEC history starts 2026-03 only). Drops no-trade days (None rows). |
 | zecusd_bitstamp_live | Bitstamp v2 ohlc | same pattern, `zecusd` | 2026-03-19+ | **Cross-check only - never feed the engine from this chart.** |
+| suiusd_yahoo | Yahoo Finance v8 chart | `.../chart/SUI20947-USD?period1=1683000000&period2=now&interval=1d` (SUI spot symbol is `SUI20947-USD`; bare `SUI-USD` is an equity, 404) | 2023-05-04+ | **SUI primary.** Bitstamp `suiusd` starts 2023-05-05 (2 days shorter). First Yahoo bar (2023-05-03, $4.52 open vs $1.40 close, launch auction) trimmed at fetch (`drop_first=1`). |
+| suiusd_bitstamp_live | Bitstamp v2 ohlc | same pattern, `suiusd` | 2023-05-05+ | **Cross-check only.** Listing-day thin prints (volume 10, frozen repeats) - audit compares traded-days only. |
+| taousd_yahoo | Yahoo Finance v8 chart | `.../chart/TAO22974-USD?period1=1677900000&period2=now&interval=1d` (TAO spot symbol is `TAO22974-USD`) | 2023-03-06+ | **TAO primary - the ONLY full-history keyless source.** Bitstamp `taousd` starts 2026-01-21; Binance spot `TAOUSDT` starts 2024-04-11 (misses year one). First Yahoo bar (2023-03-05 close $0.13 vs $87.78 next day, bad print) trimmed at fetch - untrimmed it fabricates a +220,000% buy-hold. |
+| taousd_bitstamp_live | Bitstamp v2 ohlc | same pattern, `taousd` | 2026-01-21+ | **Cross-check only** - 9 months of overlap; thin book, traded-days rule applies. |
+| hbarusd_yahoo | Yahoo Finance v8 chart | `.../chart/HBAR-USD?period1=1568600000&period2=now&interval=1d` | 2019-09-18+ | **HBAR primary.** Bitstamp `hbarusd` starts 2021-10-07 (2 years short). First Yahoo bar (2019-09-17, $0.42 open vs $0.09 close, launch spike) trimmed at fetch. |
+| hbarusd_bitstamp_live | Bitstamp v2 ohlc | same pattern, `hbarusd` | 2021-10-07+ | **Cross-check only.** |
 
 ## Sentiment
 
@@ -23,7 +29,7 @@ one CSV per chart, `ts,open,high,low,close,volume` for OHLCV or
 
 ## Computed series (never stored)
 
-- **ETH/BTC, ZEC/BTC, ZEC/ETH**: ratio of USD closes on ALIGNED dates.
+- **ETH/BTC, ZEC/BTC, ZEC/ETH, SUI/BTC, TAO/BTC, HBAR/BTC**: ratio of USD closes on ALIGNED dates.
   Never fetch cross pairs separately - venues have different clocks/gaps.
   Audit check A3 compares the computed ETH/BTC against Bitstamp's own
   ETHBTC market (<3% tolerance).

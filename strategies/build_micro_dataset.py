@@ -6,6 +6,10 @@ Charts (data/micro_dataset/):
   btcusd_daily_bitstamp.csv   BTC/USD daily OHLCV  (Bitstamp, 2011+)
   ethusd_daily_bitstamp.csv   ETH/USD daily OHLCV  (Bitstamp, 2015+)
   zecusd_daily_bitstamp.csv   ZEC/USD daily OHLCV  (Bitstamp, 2016+)
+  suiusd_yahoo                SUI/USD daily OHLCV  (Yahoo SUI20947-USD, 2023-05-03+)
+  taousd_yahoo                TAO/USD daily OHLCV  (Yahoo TAO22974-USD, 2023-03-05+)
+  hbarusd_yahoo               HBAR/USD daily OHLCV (Yahoo HBAR-USD, 2019-09-17+)
+  suiusd/taousd/hbarusd_bitstamp_live  live cross-checks (Bitstamp; TAO only 2026-01+)
   fear_greed.csv              Fear & Greed index   (alternative.me, 2018+)
 
 Crosses (ETH/BTC, ZEC/BTC) are COMPUTED as USD-close ratios at analysis time -
@@ -104,10 +108,15 @@ def bitstamp_ohlc(pair, name, max_iters=100):
     return {"source": "Bitstamp v2 ohlc", **meta}
 
 
-def yahoo_daily(symbol, name, period1):
+def yahoo_daily(symbol, name, period1, drop_first=0):
     """Full-history daily OHLCV from Yahoo Finance v8 chart API (keyless).
     Used for ZEC/USD because Bitstamp delisted/relisted the pair (its ZEC
-    history starts 2026-03 only). Drops None rows (no-trade days)."""
+    history starts 2026-03 only). Drops None rows (no-trade days).
+    drop_first: skip that many leading bars - Yahoo prints a bad launch bar
+    on an asset's first day (TAO 2023-03-05 $0.13 vs $87.78 next day;
+    SUI 2023-05-03 $4.52 open vs $1.40 close; HBAR 2019-09-17 $0.42 open
+    vs $0.09 close). One poisoned bar fabricates 1000x+ buy-hold totals,
+    so it is trimmed at fetch and documented, never silently kept."""
     import time as _time
     url = ("https://query1.finance.yahoo.com/v8/finance/chart/"
            f"{symbol}?period1={period1}&period2={int(_time.time())}&interval=1d&events=history")
@@ -127,6 +136,11 @@ def yahoo_daily(symbol, name, period1):
         rows.append([datetime.fromtimestamp(t, tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
                      o, h, l, c, v or 0])
     rows = drop_in_progress(rows)
+    if drop_first and len(rows) > drop_first:
+        cut = rows[:drop_first]
+        rows = rows[drop_first:]
+        print(f"    trimmed {len(cut)} launch bar(s): {cut[0][0][:10]} "
+              f"close {cut[0][4]} (bad first print, see docstring)")
     if not rows:
         FAILED.append(name)
         return None
@@ -194,10 +208,34 @@ def main():
     m = yahoo_daily("ZEC-USD", "zecusd_yahoo", period1=1461360000)  # 2016-04-23, zcash launch era
     if m:
         manifest["zecusd_yahoo"] = m
+    print("== Yahoo SUI daily (SUI20947-USD, launch 2023-05-03) ==")
+    m = yahoo_daily("SUI20947-USD", "suiusd_yahoo", period1=1683000000, drop_first=1)
+    if m:
+        manifest["suiusd_yahoo"] = m
+    print("== Yahoo TAO daily (TAO22974-USD, from 2023-03-05) ==")
+    m = yahoo_daily("TAO22974-USD", "taousd_yahoo", period1=1677900000, drop_first=1)
+    if m:
+        manifest["taousd_yahoo"] = m
+    print("== Yahoo HBAR daily (HBAR-USD, from 2019-09-17) ==")
+    m = yahoo_daily("HBAR-USD", "hbarusd_yahoo", period1=1568600000, drop_first=1)
+    if m:
+        manifest["hbarusd_yahoo"] = m
     print("== Bitstamp ZECUSD daily (live cross-check) ==")
     m = bitstamp_ohlc("zecusd", "zecusd_bitstamp_live")
     if m:
         manifest["zecusd_bitstamp_live"] = m
+    print("== Bitstamp SUIUSD daily (live cross-check) ==")
+    m = bitstamp_ohlc("suiusd", "suiusd_bitstamp_live")
+    if m:
+        manifest["suiusd_bitstamp_live"] = m
+    print("== Bitstamp TAOUSD daily (live cross-check, listed 2026-01) ==")
+    m = bitstamp_ohlc("taousd", "taousd_bitstamp_live")
+    if m:
+        manifest["taousd_bitstamp_live"] = m
+    print("== Bitstamp HBARUSD daily (live cross-check, listed 2021-10) ==")
+    m = bitstamp_ohlc("hbarusd", "hbarusd_bitstamp_live")
+    if m:
+        manifest["hbarusd_bitstamp_live"] = m
 
     print("== Fear & Greed ==")
     m = fear_greed()

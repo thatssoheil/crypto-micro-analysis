@@ -5,23 +5,32 @@ anything. README.md is the user-facing overview; this is the operational contrac
 
 ## What this project is
 
-Short-horizon (days-to-weeks) research on BTC/ETH/ZEC + their cross-pairs:
-trend health, relative strength, bull-cycle phase. Companion to the sibling
+Short-horizon (days-to-weeks) research on BTC/ETH/ZEC/SUI/TAO/HBAR +
+their cross-pairs: trend health, relative strength, bull-cycle phase. Companion to the sibling
 repo `crypto-macro-analysis` - THERE the macro engine decides whether to be in
 crypto at all; HERE we decide which asset to sit in and when a trend is broken.
 Public, MIT.
 
 ## Golden rules (tested facts - do not re-litigate)
 
-1. **The MA50 close-filter beats buy-and-hold on BTC, ETH and ZEC** over
-   2017-11 .. today with much lower max drawdown. Reproduce:
-   `strategies/micro_backtest.py`.
-2. **An MA200 hard floor helps BTC/ETH quality (Sharpe, maxDD) but HURTS ZEC**
-   - it locks ZEC out of post-breakdown recovery rallies (ZEC filtered total
-   drops ~1458% -> ~597%). Do not apply the 200d floor to ZEC.
-3. **RS rotation is a selector, not a return driver** - it beats holding BTC
-   but loses to plain MA50 filtering on each asset. Use it to pick WHICH asset;
-   the MA50 filter decides WHETHER to be in.
+1. **The MA50 close-filter beats buy-and-hold on five of six assets**
+   (BTC/ETH/ZEC over 2017-11 .. today; SUI/HBAR on their own shorter spans)
+   with much lower max drawdown. The exception is TAO: buy-hold +217% vs
+   MA50 +174% on 2023-03 .. today - but MA50 still halves the drawdown
+   (-59% vs -80%). Reproduce: `strategies/micro_backtest.py`.
+2. **An MA200 hard floor helps BTC/ETH/SUI quality (maxDD, flip count) but
+   HURTS ZEC/TAO/HBAR** - it locks them out of post-breakdown recovery
+   rallies (ZEC filtered total drops ~1458% -> ~597%; TAO floor even worsens
+   maxDD -59% -> -77%; HBAR floor costs ~70% of return for 3pp of DD).
+   Do not apply the 200d floor to ZEC, TAO or HBAR. SUI evidence is
+   short-window (2023-05+, 35 vs 69 flips) - re-check as history accrues.
+3. **RS rotation is a selector, not a return driver** - on the legacy 3-asset
+   panel it beats holding BTC but loses to plain MA50 filtering on each
+   asset. Use it to pick WHICH asset; the MA50 filter decides WHETHER to be
+   in. Exception on record: on the short 6-asset panel (2023-05 .. today)
+   rotation prints +16,206% vs the best single-asset MA50 (ZEC +2,452%) -
+   that is one ZEC leg in a 3.4y window, not a general claim. Never quote
+   the 6-asset multiple without the window.
 4. **The phase score cannot call tops in real time** (+1.67 at the Nov-2021
    top = FAIL) but confirms breakdowns within ~10-31 days and deliberately
    misses V-bottoms. It is a hold/exit overlay, never an entry timer.
@@ -66,7 +75,9 @@ bash scripts/refresh.sh --check                        # status only
 
 ## Backtest conventions (CRITICAL)
 
-- Aligned 3-asset panel: dates where ALL of BTC/ETH/ZEC have closes (2017-11+).
+- Aligned panels: legacy 3-asset (BTC/ETH/ZEC, 2017-11+) for long-window
+  evidence; full 6-asset (+SUI/TAO/HBAR, 2023-05-04+, SUI binds). Q1/Q2 run
+  per-asset FULL span (no panel shrink).
 - True daily closes, no resampling artifacts.
 - Signal computed at close t drives the t->t+1 return (`shift(1)` execution).
 - No cost model (daily flips are rare after filtering; note flip counts).

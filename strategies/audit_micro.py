@@ -42,7 +42,10 @@ def load_ohlcv(name):
 # ------------------------------------------------------------------ A1 ----
 def schema_checks():
     charts = ["btcusd_daily", "ethusd_daily", "zecusd_yahoo",
-              "zecusd_bitstamp_live"]
+              "zecusd_bitstamp_live",
+              "suiusd_yahoo", "suiusd_bitstamp_live",
+              "taousd_yahoo", "taousd_bitstamp_live",
+              "hbarusd_yahoo", "hbarusd_bitstamp_live"]
     for name in charts:
         df = pd.read_csv(DATA / f"{name}.csv")
         ok_cols = list(df.columns) == ["ts", "open", "high", "low", "close", "volume"]
@@ -80,6 +83,38 @@ def zec_crosscheck():
     if recent_dead >= 0.9:
         print(f"[WARN] A2 Bitstamp ZEC dead book: {recent_dead*100:.0f}% of last "
               f"14 days had zero volume - cross-check value is limited")
+
+
+def venue_crosscheck(tag, yahoo_name, live_name):
+    """Generic Yahoo-primary vs Bitstamp-live cross-check (SUI/TAO/HBAR).
+
+    Same traded-days rule as ZEC: Bitstamp thin books freeze prints on
+    zero-volume days, so compare ONLY days with actual trades."""
+    y = load_ohlcv(yahoo_name)["close"]
+    bl = load_ohlcv(live_name)
+    b = bl.loc[bl["volume"] > 0, "close"]
+    idx = y.index.intersection(b.index)
+    if len(idx) < 10:
+        print(f"[SKIP] {tag} {yahoo_name}-vs-{live_name} "
+              f"(only {len(idx)} traded-day overlaps)")
+        return
+    diff = ((y.loc[idx] - b.loc[idx]).abs() / b.loc[idx] * 100)
+    med = float(diff.median())
+    mx = float(diff.max())
+    check(f"{tag} primary-vs-live median divergence < 3% (traded days)",
+          med < 3.0,
+          f"median {med:.2f}%, max {mx:.1f}% over {len(idx)} traded days "
+          f"({int((bl['volume'].tail(30) == 0).sum())} of last 30 bitstamp days had no trades)")
+    recent_dead = float((bl["volume"].tail(14) == 0).mean())
+    if recent_dead >= 0.9:
+        print(f"[WARN] {tag} Bitstamp dead book: {recent_dead*100:.0f}% of last "
+              f"14 days had zero volume - cross-check value is limited")
+
+
+def alt_crosschecks():
+    venue_crosscheck("A2-SUI", "suiusd_yahoo", "suiusd_bitstamp_live")
+    venue_crosscheck("A2-TAO", "taousd_yahoo", "taousd_bitstamp_live")
+    venue_crosscheck("A2-HBAR", "hbarusd_yahoo", "hbarusd_bitstamp_live")
 
 
 # ------------------------------------------------------------------ A3 ----
@@ -199,14 +234,18 @@ def signal_recompute():
         "btc": btc,
         "eth": load_ohlcv("ethusd_daily")["close"],
         "zec": load_ohlcv("zecusd_yahoo")["close"],
+        "sui": load_ohlcv("suiusd_yahoo")["close"],
+        "tao": load_ohlcv("taousd_yahoo")["close"],
+        "hbar": load_ohlcv("hbarusd_yahoo")["close"],
     }).dropna()
     ma = panel.rolling(50, min_periods=50).mean()
     holding = int(((panel > ma) & ma.notna()).iloc[-1].sum())
+    n = panel.shape[1]
     dd = (panel["btc"].iloc[-1] / panel["btc"].rolling(180, min_periods=180)
           .max().iloc[-1] - 1) * 100
     check("A4 phase components computable",
-          holding in (0, 1, 2, 3),
-          f"breadth {holding}/3, BTC dd {dd:+.1f}% vs 180d high")
+          holding in tuple(range(n + 1)),
+          f"breadth {holding}/{n}, BTC dd {dd:+.1f}% vs 180d high")
 
 
 def main():
@@ -215,6 +254,7 @@ def main():
     print("=" * 64)
     schema_checks()
     zec_crosscheck()
+    alt_crosschecks()
     ratio_crosscheck()
     bitfinex_native_cross()
     signal_recompute()

@@ -10,13 +10,15 @@ intact or broken**, on a days-to-weeks horizon.
 > **For agents/AI:** read [`AGENTS.md`](AGENTS.md) first - golden rules,
 > backtest conventions, engine math, data pitfalls (operational contract).
 
-**The core validated edges** (reproduce with `strategies/micro_backtest.py`,
-2017-11 .. today):
-- An **MA50 close-filter beats buy-and-hold on all three assets** with much
-  lower drawdowns (BTC +2622% vs +977%; ETH +2887% vs +651%; ZEC +1458% vs +203%).
-- Adding an **MA200 hard floor** cuts max drawdown further and lifts Sharpe on
-  BTC/ETH - but costs ZEC half its filtered return (ZEC's recovery rallies come
-  from below its 200d MA).
+**The core validated edges** (reproduce with `strategies/micro_backtest.py`):
+- An **MA50 close-filter beats buy-and-hold on five of six assets** with much
+  lower drawdowns (BTC/ETH/ZEC since 2017-11; SUI/HBAR on their own spans;
+  TAO is the exception: buy-hold +217% vs MA50 +174%, but MA50 halves the
+  drawdown). Numbers drift as data appends - run the script for current ones.
+- Adding an **MA200 hard floor** cuts max drawdown further and lifts quality on
+  BTC/ETH/SUI - but costs ZEC half its filtered return, worsens TAO drawdown,
+  and buys HBAR almost nothing (ZEC/TAO/HBAR recovery rallies come
+  from below their 200d MA).
 - **Cross-pair RS rotation** picks the right asset more often than holding BTC,
   but is a selector, not a return driver.
 
@@ -65,14 +67,15 @@ so every series shares one source clock. Sources, endpoints and known gaps:
 Per asset - trend health (-3..+3): close vs MA50, MA50 5-day slope, RSI(14)
 overbought/oversold trim bands.
 
-Cross-pair RS: ETH/BTC, ZEC/BTC, ZEC/ETH ratio momentum (20d vs 60d MA) plus
+Cross-pair RS: ETH/BTC, ZEC/BTC, ZEC/ETH, SUI/BTC, TAO/BTC, HBAR/BTC ratio
+momentum (20d vs 60d MA) plus
 position in its own 180d range -> who is leading, who is lagging.
 
 Cycle phase (-3..+3), three weighted components:
 | Component | Weight |
 |-----------|--------|
 | BTC drawdown vs trailing 180d high | 2.0 |
-| Breadth: how many of the 3 assets hold their MA50 | 1.5 |
+| Breadth: fraction of the 6 assets holding their MA50 | 1.5 |
 | Fear & Greed contrarian bands (<25 buy zone / >75 distribution risk) | 1.0 |
 
 Verdict bands: >= +1.5 PHASE 1 bull expansion; +0.5..1.5 early bull;
