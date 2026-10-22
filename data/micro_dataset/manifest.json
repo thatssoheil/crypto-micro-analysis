@@ -1,69 +1,69 @@
 {
   "btcusd_daily": {
     "source": "Bitstamp v2 ohlc",
-    "rows": 5543,
+    "rows": 5544,
     "first": "2011-08-18 00:00:00",
-    "last": "2026-10-20 00:00:00"
+    "last": "2026-10-21 00:00:00"
   },
   "ethusd_daily": {
     "source": "Bitstamp v2 ohlc",
-    "rows": 3353,
+    "rows": 3354,
     "first": "2017-08-16 00:00:00",
-    "last": "2026-10-20 00:00:00"
+    "last": "2026-10-21 00:00:00"
   },
   "zecusd_yahoo": {
     "source": "Yahoo v8 chart ZEC-USD",
-    "rows": 3268,
+    "rows": 3269,
     "first": "2017-11-09 00:00:00",
-    "last": "2026-10-20 00:00:00"
+    "last": "2026-10-21 00:00:00"
   },
   "suiusd_yahoo": {
     "source": "Yahoo v8 chart SUI20947-USD",
-    "rows": 1266,
+    "rows": 1267,
     "first": "2023-05-04 00:00:00",
-    "last": "2026-10-20 00:00:00"
+    "last": "2026-10-21 00:00:00"
   },
   "taousd_yahoo": {
     "source": "Yahoo v8 chart TAO22974-USD",
-    "rows": 1325,
+    "rows": 1326,
     "first": "2023-03-06 00:00:00",
-    "last": "2026-10-20 00:00:00"
+    "last": "2026-10-21 00:00:00"
   },
   "hbarusd_yahoo": {
     "source": "Yahoo v8 chart HBAR-USD",
-    "rows": 2590,
+    "rows": 2591,
     "first": "2019-09-18 00:00:00",
-    "last": "2026-10-20 00:00:00"
+    "last": "2026-10-21 00:00:00"
   },
   "zecusd_bitstamp_live": {
     "source": "Bitstamp v2 ohlc",
-    "rows": 216,
+    "rows": 217,
     "first": "2026-03-19 00:00:00",
-    "last": "2026-10-20 00:00:00"
+    "last": "2026-10-21 00:00:00"
   },
   "suiusd_bitstamp_live": {
     "source": "Bitstamp v2 ohlc",
-    "rows": 1265,
+    "rows": 1266,
     "first": "2023-05-05 00:00:00",
-    "last": "2026-10-20 00:00:00"
+    "last": "2026-10-21 00:00:00"
   },
   "taousd_bitstamp_live": {
     "source": "Bitstamp v2 ohlc",
-    "rows": 273,
+    "rows": 274,
     "first": "2026-01-21 00:00:00",
-    "last": "2026-10-20 00:00:00"
+    "last": "2026-10-21 00:00:00"
   },
   "hbarusd_bitstamp_live": {
     "source": "Bitstamp v2 ohlc",
-    "rows": 1840,
+    "rows": 1841,
     "first": "2021-10-07 00:00:00",
-    "last": "2026-10-20 00:00:00"
+    "last": "2026-10-21 00:00:00"
   },
   "fear_greed": {
     "source": "alternative.me fng",
-    "rows": 3181,
+    "rows": 3182,
     "first": "2018-02-01",
-    "last": "2026-10-21"
+    "last": "2026-10-22"
   },
-  "_generated": "2026-10-21 20:45:56 UTC"
+  "_generated": "2026-10-22 20:45:57 UTC"
 }
